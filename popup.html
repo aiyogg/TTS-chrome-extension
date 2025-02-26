@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Text-to-Speech with Azure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 15px;
+            width: 400px;
+        }
+        h1 {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            height: 36px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #3367d6;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .instructions {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .loading {
+            display: none;
+            margin-top: 10px;
+            color: #666;
+        }
+        .voice-filter {
+            margin-bottom: 10px;
+        }
+        .voice-filter label {
+            display: inline-block;
+            margin-right: 10px;
+            font-weight: normal;
+        }
+        .voice-filter select {
+            width: auto;
+            display: inline-block;
+        }
+        .voice-container {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Text-to-Speech with Azure</h1>
+    
+    <div class="form-group">
+        <label for="subscriptionKey">Azure Subscription Key:</label>
+        <input type="text" id="subscriptionKey" placeholder="Enter your Azure subscription key">
+    </div>
+    
+    <div class="form-group">
+        <label for="region">Azure Region:</label>
+        <input type="text" id="region" placeholder="e.g., eastus, westus, westeurope">
+    </div>
+    
+    <button id="saveButton">Save Settings</button>
+    <button id="loadVoicesButton">Load Voices</button>
+    
+    <div id="status" class="status"></div>
+    <div id="loading" class="loading">Loading voices, please wait...</div>
+    
+    <div id="voiceSelectionContainer" style="display: none;">
+        <h2 style="font-size: 16px; margin-top: 20px;">Voice Selection</h2>
+        
+        <div class="voice-filter">
+            <label for="languageFilter">Filter by language:</label>
+            <select id="languageFilter">
+                <option value="all">All Languages</option>
+            </select>
+        </div>
+        
+        <div class="voice-container">
+            <select id="voiceSelect" size="10" style="width: 100%; border: none;">
+                <!-- Voice options will be populated here -->
+            </select>
+        </div>
+        
+        <button id="saveVoiceButton">Save Selected Voice</button>
+    </div>
+    
+    <div class="instructions">
+        <p><strong>How to use:</strong></p>
+        <ol>
+            <li>Enter your Azure subscription key and region.</li>
+            <li>Click "Save Settings" to save your credentials.</li>
+            <li>Click "Load Voices" to fetch available voices.</li>
+            <li>Select a voice and click "Save Selected Voice".</li>
+            <li>On any webpage, select text, right-click, and choose "Speak Text".</li>
+        </ol>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>
