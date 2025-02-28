@@ -81,6 +81,12 @@ async function streamAudio(url, accessToken, ssml) {
             // Create audio context
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             
+            // Update extension icon to show processing
+            if (chrome.action) {
+                chrome.action.setBadgeText({ text: '...' });
+                chrome.action.setBadgeBackgroundColor({ color: '#FFA000' });
+            }
+            
             // Create a status indicator
             const statusIndicator = document.createElement('div');
             statusIndicator.textContent = 'Preparing audio...';
@@ -115,6 +121,12 @@ async function streamAudio(url, accessToken, ssml) {
             // Update status
             statusIndicator.textContent = 'Playing...';
             
+            // Update extension icon to show playing
+            if (chrome.action) {
+                chrome.action.setBadgeText({ text: '▶' });
+                chrome.action.setBadgeBackgroundColor({ color: '#4CAF50' });
+            }
+            
             // Decode the audio data
             audioContext.decodeAudioData(audioData, (buffer) => {
                 // Create a source node
@@ -130,11 +142,23 @@ async function streamAudio(url, accessToken, ssml) {
                 // Remove the status indicator when playback ends
                 source.onended = () => {
                     document.body.removeChild(statusIndicator);
+                    
+                    // Reset extension icon
+                    if (chrome.action) {
+                        chrome.action.setBadgeText({ text: '' });
+                    }
+                    
                     resolve();
                 };
             }, (error) => {
                 console.error('Error decoding audio data:', error);
                 document.body.removeChild(statusIndicator);
+                
+                // Reset extension icon
+                if (chrome.action) {
+                    chrome.action.setBadgeText({ text: '' });
+                }
+                
                 reject(error);
             });
         } catch (error) {
@@ -146,6 +170,11 @@ async function streamAudio(url, accessToken, ssml) {
                 }
             } catch (e) {
                 // Ignore errors when trying to remove the indicator
+            }
+            
+            // Reset extension icon
+            if (chrome.action) {
+                chrome.action.setBadgeText({ text: '' });
             }
             
             reject(error);

@@ -58,6 +58,11 @@ document.addEventListener('DOMContentLoaded', function() {
             region: region
         }, function() {
             showStatus('Settings saved successfully!', 'success');
+            
+            // Update the extension icon to remove the badge
+            if (chrome.action) {
+                chrome.action.setBadgeText({ text: '' });
+            }
         });
     });
 
