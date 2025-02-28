@@ -29,11 +29,11 @@
         }
         select {
             width: 100%;
+            height: 100%;
             padding: 8px;
             box-sizing: border-box;
             border: 1px solid #ccc;
             border-radius: 4px;
-            height: 36px;
         }
         button {
             padding: 10px 15px;
@@ -84,14 +84,48 @@
         .voice-filter select {
             width: auto;
             display: inline-block;
+            height: auto;
         }
         .voice-container {
             max-height: 200px;
-            overflow-y: auto;
             border: 1px solid #ddd;
             border-radius: 4px;
-            padding: 10px;
+            padding: 0;
             margin-bottom: 15px;
+            resize: vertical;
+            min-height: 100px;
+            position: relative;
+            overflow: hidden;
+        }
+        .voice-container::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            right: 3px;
+            width: 10px;
+            height: 10px;
+            background-image: linear-gradient(135deg, #ccc 25%, transparent 25%),
+                              linear-gradient(225deg, #ccc 25%, transparent 25%),
+                              linear-gradient(315deg, #ccc 25%, transparent 25%),
+                              linear-gradient(45deg, #ccc 25%, transparent 25%);
+            background-size: 5px 5px;
+            cursor: ns-resize;
+            z-index: 10;
+            pointer-events: none;
+        }
+        #voiceSelect {
+            width: 100%;
+            border: none;
+            height: 100%;
+            padding: 5px;
+            overflow-y: auto;
+            overflow-x: auto;
+            box-sizing: border-box;
+        }
+        #voiceSelect option {
+            white-space: nowrap;
+            overflow: visible;
+            padding: 3px 5px;
         }
         option[data-multilingual="true"] {
             font-weight: bold;
@@ -133,7 +167,7 @@
         </div>
         
         <div class="voice-container">
-            <select id="voiceSelect" size="10" style="width: 100%; border: none;">
+            <select id="voiceSelect" size="10">
                 <!-- Voice options will be populated here -->
             </select>
         </div>

@@ -1,9 +1,45 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Load saved values
-    chrome.storage.sync.get(['subscriptionKey', 'region', 'selectedVoice'], function(result) {
+    chrome.storage.sync.get([
+        'subscriptionKey', 
+        'region', 
+        'selectedVoice', 
+        'selectedLanguage', 
+        'multilingualFilter',
+        'voiceContainerHeight'
+    ], function(result) {
         document.getElementById('subscriptionKey').value = result.subscriptionKey || '';
         document.getElementById('region').value = result.region || '';
+        
+        // Restore filter settings (will be applied after voices are loaded)
+        if (result.selectedLanguage) {
+            document.getElementById('languageFilter').value = result.selectedLanguage;
+        }
+        
+        if (result.multilingualFilter) {
+            document.getElementById('multilingualFilter').checked = result.multilingualFilter;
+        }
+        
+        // Restore voice container height if saved
+        if (result.voiceContainerHeight) {
+            document.querySelector('.voice-container').style.height = result.voiceContainerHeight + 'px';
+        }
+        
+        // Automatically load voices if credentials are already set
+        if (result.subscriptionKey && result.region) {
+            loadVoices(result.subscriptionKey, result.region);
+        }
     });
+
+    // Save voice container height when resized
+    const voiceContainer = document.querySelector('.voice-container');
+    let resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            const height = entry.contentRect.height;
+            chrome.storage.sync.set({ voiceContainerHeight: height });
+        }
+    });
+    resizeObserver.observe(voiceContainer);
 
     // Save button click handler
     document.getElementById('saveButton').addEventListener('click', function() {
@@ -35,28 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        try {
-            // Show loading indicator
-            document.getElementById('loading').style.display = 'block';
-            
-            // Get access token
-            const token = await getAccessToken(subscriptionKey, region);
-            
-            // Get voices list
-            const voices = await getVoicesList(token, region);
-            
-            // Populate voice selection
-            populateVoiceSelection(voices);
-            
-            // Hide loading indicator
-            document.getElementById('loading').style.display = 'none';
-            
-            // Show voice selection container
-            document.getElementById('voiceSelectionContainer').style.display = 'block';
-        } catch (error) {
-            document.getElementById('loading').style.display = 'none';
-            showStatus(`Error loading voices: ${error.message}`, 'error');
-        }
+        loadVoices(subscriptionKey, region);
     });
 
     // Save voice button click handler
@@ -79,11 +94,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Language filter change handler
     document.getElementById('languageFilter').addEventListener('change', function() {
+        // Save the selected language filter
+        chrome.storage.sync.set({ selectedLanguage: this.value });
         applyFilters();
     });
     
     // Multilingual filter change handler
     document.getElementById('multilingualFilter').addEventListener('change', function() {
+        // Save the multilingual filter state
+        chrome.storage.sync.set({ multilingualFilter: this.checked });
         applyFilters();
     });
     
@@ -247,10 +266,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 for (let i = 0; i < voiceSelect.options.length; i++) {
                     if (voiceSelect.options[i].value === result.selectedVoice) {
                         voiceSelect.selectedIndex = i;
+                        
+                        // Scroll to the selected voice
+                        setTimeout(() => {
+                            const selectedOption = voiceSelect.options[voiceSelect.selectedIndex];
+                            if (selectedOption) {
+                                selectedOption.scrollIntoView({ block: 'center' });
+                            }
+                        }, 100);
+                        
                         break;
                     }
                 }
             }
+            
+            // Apply saved filters after voices and selected voice are loaded
+            applyFilters();
         });
     }
 
@@ -288,5 +319,31 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         return languages[langCode] || langCode;
+    }
+
+    // Function to load voices
+    async function loadVoices(subscriptionKey, region) {
+        try {
+            // Show loading indicator
+            document.getElementById('loading').style.display = 'block';
+            
+            // Get access token
+            const token = await getAccessToken(subscriptionKey, region);
+            
+            // Get voices list
+            const voices = await getVoicesList(token, region);
+            
+            // Populate voice selection
+            populateVoiceSelection(voices);
+            
+            // Hide loading indicator
+            document.getElementById('loading').style.display = 'none';
+            
+            // Show voice selection container
+            document.getElementById('voiceSelectionContainer').style.display = 'block';
+        } catch (error) {
+            document.getElementById('loading').style.display = 'none';
+            showStatus(`Error loading voices: ${error.message}`, 'error');
+        }
     }
 }); 
