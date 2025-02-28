@@ -93,6 +93,10 @@
             padding: 10px;
             margin-bottom: 15px;
         }
+        option[data-multilingual="true"] {
+            font-weight: bold;
+            color: #4285f4;
+        }
     </style>
 </head>
 <body>
@@ -122,6 +126,10 @@
             <select id="languageFilter">
                 <option value="all">All Languages</option>
             </select>
+            <div style="margin-top: 8px;">
+                <input type="checkbox" id="multilingualFilter">
+                <label for="multilingualFilter">Show only multilingual voices</label>
+            </div>
         </div>
         
         <div class="voice-container">

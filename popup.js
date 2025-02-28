@@ -79,7 +79,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Language filter change handler
     document.getElementById('languageFilter').addEventListener('change', function() {
-        const selectedLanguage = this.value;
+        applyFilters();
+    });
+    
+    // Multilingual filter change handler
+    document.getElementById('multilingualFilter').addEventListener('change', function() {
+        applyFilters();
+    });
+    
+    // Function to apply all filters
+    function applyFilters() {
+        const selectedLanguage = document.getElementById('languageFilter').value;
+        const multilingualOnly = document.getElementById('multilingualFilter').checked;
         const voiceSelect = document.getElementById('voiceSelect');
         
         // Show all options first
@@ -87,15 +98,23 @@ document.addEventListener('DOMContentLoaded', function() {
             option.style.display = '';
         });
         
-        // If a specific language is selected, hide other options
-        if (selectedLanguage !== 'all') {
-            Array.from(voiceSelect.options).forEach(option => {
-                if (!option.dataset.locale.startsWith(selectedLanguage)) {
-                    option.style.display = 'none';
-                }
-            });
-        }
-    });
+        // Apply filters
+        Array.from(voiceSelect.options).forEach(option => {
+            let shouldShow = true;
+            
+            // Apply language filter
+            if (selectedLanguage !== 'all' && !option.dataset.locale.startsWith(selectedLanguage)) {
+                shouldShow = false;
+            }
+            
+            // Apply multilingual filter
+            if (multilingualOnly && option.dataset.multilingual !== 'true') {
+                shouldShow = false;
+            }
+            
+            option.style.display = shouldShow ? '' : 'none';
+        });
+    }
 
     // Helper function to show status messages
     function showStatus(message, type) {
@@ -168,18 +187,44 @@ document.addEventListener('DOMContentLoaded', function() {
         // Track unique languages for the filter
         const languages = new Set();
         
+        // Count multilingual voices
+        let multilingualCount = 0;
+        
         // Add voice options
         voices.forEach(voice => {
             const option = document.createElement('option');
             option.value = voice.ShortName;
             option.textContent = `${voice.LocaleName} - ${voice.DisplayName} (${voice.Gender})`;
             option.dataset.locale = voice.Locale;
+            
+            // Add multilingual attribute if the voice has secondary locales
+            const isMultilingual = voice.SecondaryLocaleList && voice.SecondaryLocaleList.length > 0;
+            option.dataset.multilingual = isMultilingual;
+            
+            // Count multilingual voices
+            if (isMultilingual) {
+                multilingualCount++;
+                option.textContent += ' [Multilingual]';
+                
+                // Add tooltip with supported languages
+                const supportedLocales = [voice.Locale, ...voice.SecondaryLocaleList];
+                const supportedLanguages = supportedLocales.map(locale => {
+                    const langCode = locale.split('-')[0];
+                    return getLanguageName(langCode);
+                });
+                option.title = `Supports: ${supportedLanguages.join(', ')}`;
+            }
+            
             voiceSelect.appendChild(option);
             
             // Add language to filter if not already added
             const langCode = voice.Locale.split('-')[0];
             languages.add(langCode);
         });
+        
+        // Update multilingual filter label with count
+        const multilingualLabel = document.querySelector('label[for="multilingualFilter"]');
+        multilingualLabel.textContent = `Show only multilingual voices (${multilingualCount})`;
         
         // Clear existing language filter options (except "All Languages")
         while (languageFilter.options.length > 1) {
