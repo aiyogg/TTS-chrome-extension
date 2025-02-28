@@ -110,8 +110,22 @@ document.addEventListener('DOMContentLoaded', function() {
         chrome.storage.sync.set({ multilingualFilter: this.checked });
         applyFilters();
     });
+
+    // Open Chrome shortcuts page
+    document.getElementById('openShortcutsPage').addEventListener('click', function(e) {
+        e.preventDefault();
+        chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+    });
+
+    // Get current keyboard shortcut
+    chrome.commands.getAll(function(commands) {
+        const speakCommand = commands.find(command => command.name === 'speak-selected-text');
+        if (speakCommand && speakCommand.shortcut) {
+            document.getElementById('currentShortcut').textContent = 
+                speakCommand.shortcut + (navigator.platform.includes('Mac') ? '' : ' (Command+Shift+S on Mac)');
+        }
+    });
     
-    // Function to apply all filters
     function applyFilters() {
         const selectedLanguage = document.getElementById('languageFilter').value;
         const multilingualOnly = document.getElementById('multilingualFilter').checked;
@@ -138,8 +152,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             option.style.display = shouldShow ? '' : 'none';
         });
-    }
-
+        }
+        
     // Helper function to show status messages
     function showStatus(message, type) {
         const statusElement = document.getElementById('status');
@@ -152,22 +166,22 @@ document.addEventListener('DOMContentLoaded', function() {
             statusElement.style.display = 'none';
         }, 3000);
     }
-
+    
     // Function to get access token
     async function getAccessToken(subscriptionKey, region) {
         const tokenEndpoint = `https://${region}.api.cognitive.microsoft.com/sts/v1.0/issueToken`;
         
-        const response = await fetch(tokenEndpoint, {
-            method: "POST",
-            headers: {
-                "Ocp-Apim-Subscription-Key": subscriptionKey,
-                "Content-Length": "0"
-            }
-        });
-        
-        if (!response.ok) {
+            const response = await fetch(tokenEndpoint, {
+                method: "POST",
+                headers: {
+                    "Ocp-Apim-Subscription-Key": subscriptionKey,
+                    "Content-Length": "0"
+                }
+            });
+            
+            if (!response.ok) {
             throw new Error(`Token request failed with status ${response.status}: ${response.statusText}`);
-        }
+                }
         
         const token = await response.text();
         return token;
@@ -177,19 +191,19 @@ document.addEventListener('DOMContentLoaded', function() {
     async function getVoicesList(accessToken, region) {
         const voicesEndpoint = `https://${region}.tts.speech.microsoft.com/cognitiveservices/voices/list`;
         
-        const response = await fetch(voicesEndpoint, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${accessToken}`
-            }
-        });
-        
-        if (!response.ok) {
+            const response = await fetch(voicesEndpoint, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${accessToken}`
+                }
+            });
+            
+            if (!response.ok) {
             throw new Error(`Voices request failed with status ${response.status}: ${response.statusText}`);
-        }
-        
-        const voices = await response.json();
-        return voices;
+            }
+            
+            const voices = await response.json();
+            return voices;
     }
 
     // Function to populate voice selection
@@ -229,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isMultilingual) {
                 multilingualCount++;
                 option.textContent += ' [Multilingual]';
-                
+            
                 // Add tooltip with supported languages
                 const supportedLocales = [voice.Locale, ...voice.SecondaryLocaleList];
                 const supportedLanguages = supportedLocales.map(locale => {
@@ -246,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
             languages.add(langCode);
         });
         
-        // Update multilingual filter label with count
+        // Update the multilingual filter label with count
         const multilingualLabel = document.querySelector('label[for="multilingualFilter"]');
         multilingualLabel.textContent = `Show only multilingual voices (${multilingualCount})`;
         
@@ -264,33 +278,36 @@ document.addEventListener('DOMContentLoaded', function() {
             languageFilter.appendChild(option);
         });
         
-        // Load previously selected voice if available
-        chrome.storage.sync.get(['selectedVoice'], function(result) {
-            if (result.selectedVoice) {
-                // Find the option with the matching value
-                for (let i = 0; i < voiceSelect.options.length; i++) {
-                    if (voiceSelect.options[i].value === result.selectedVoice) {
-                        voiceSelect.selectedIndex = i;
-                        
-                        // Scroll to the selected voice
-                        setTimeout(() => {
-                            const selectedOption = voiceSelect.options[voiceSelect.selectedIndex];
-                            if (selectedOption) {
-                                selectedOption.scrollIntoView({ block: 'center' });
-                            }
-                        }, 100);
-                        
-                        break;
-                    }
-                }
+        // Restore selected language if it exists
+        chrome.storage.sync.get(['selectedLanguage', 'multilingualFilter'], function(result) {
+            if (result.selectedLanguage) {
+                languageFilter.value = result.selectedLanguage;
             }
             
-            // Apply saved filters after voices and selected voice are loaded
+            if (result.multilingualFilter) {
+                document.getElementById('multilingualFilter').checked = result.multilingualFilter;
+            }
+            
+            // Apply filters
             applyFilters();
         });
+        
+        // Restore selected voice if it exists
+        chrome.storage.sync.get(['selectedVoice'], function(result) {
+            if (result.selectedVoice) {
+                voiceSelect.value = result.selectedVoice;
+                
+                // If the selected voice is not in the list, select the first voice
+                if (voiceSelect.selectedIndex === -1 && voiceSelect.options.length > 0) {
+                    voiceSelect.selectedIndex = 0;
+                }
+            } else if (voiceSelect.options.length > 0) {
+                // If no voice is selected, select the first voice
+                voiceSelect.selectedIndex = 0;
+            }
+        });
     }
-
-    // Helper function to get language name from code
+    
     function getLanguageName(langCode) {
         const languages = {
             'ar': 'Arabic',
@@ -325,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         return languages[langCode] || langCode;
     }
-
+    
     // Function to load voices
     async function loadVoices(subscriptionKey, region) {
         try {

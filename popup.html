@@ -12,6 +12,10 @@
             font-size: 18px;
             margin-bottom: 15px;
         }
+        h2 {
+            font-size: 16px;
+            margin-top: 20px;
+        }
         .form-group {
             margin-bottom: 15px;
         }
@@ -131,6 +135,26 @@
             font-weight: bold;
             color: #4285f4;
         }
+        .multilingual {
+            font-weight: bold;
+            color: #4285f4;
+        }
+        .shortcut-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .shortcut-info p {
+            margin: 5px 0;
+        }
+        .shortcut-info a {
+            color: #4285f4;
+            text-decoration: none;
+        }
+        .shortcut-info a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -153,7 +177,7 @@
     <div id="loading" class="loading">Loading voices, please wait...</div>
     
     <div id="voiceSelectionContainer" style="display: none;">
-        <h2 style="font-size: 16px; margin-top: 20px;">Voice Selection</h2>
+        <h2>Voice Selection</h2>
         
         <div class="voice-filter">
             <label for="languageFilter">Filter by language:</label>
@@ -175,6 +199,22 @@
         <button id="saveVoiceButton">Save Selected Voice</button>
     </div>
     
+    <div id="keyboardShortcutContainer">
+        <h2>Keyboard Shortcut</h2>
+        
+        <div class="shortcut-info">
+            <p>Current shortcut: <strong id="currentShortcut">Ctrl+Shift+S (Command+Shift+S on Mac)</strong></p>
+            <p>To customize this shortcut:</p>
+            <ol>
+                <li>Go to <code>chrome://extensions</code> in your browser</li>
+                <li>Click on the menu icon in the top-left corner</li>
+                <li>Select "Keyboard shortcuts" from the menu</li>
+                <li>Find "Text-to-Speech with Azure" and customize the shortcut</li>
+            </ol>
+            <p><a href="#" id="openShortcutsPage">Open Chrome Shortcuts Page</a></p>
+        </div>
+    </div>
+    
     <div class="instructions">
         <p><strong>How to use:</strong></p>
         <ol>
@@ -183,6 +223,7 @@
             <li>Click "Load Voices" to fetch available voices.</li>
             <li>Select a voice and click "Save Selected Voice".</li>
             <li>On any webpage, select text, right-click, and choose "Speak Text".</li>
+            <li>Or use the keyboard shortcut to speak selected text.</li>
         </ol>
     </div>
     

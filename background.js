@@ -79,6 +79,55 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     }
 });
 
+// Listen for keyboard shortcut commands
+chrome.commands.onCommand.addListener((command) => {
+    if (command === "speak-selected-text") {
+        // Get the active tab
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs.length === 0) return;
+            
+            const activeTab = tabs[0];
+            
+            // Execute a script to get the selected text
+            chrome.scripting.executeScript({
+                target: { tabId: activeTab.id },
+                function: () => {
+                    return window.getSelection().toString();
+                }
+            }).then((results) => {
+                const selectedText = results[0].result;
+                
+                if (!selectedText) {
+                    // Show notification if no text is selected
+                    chrome.notifications.create({
+                        type: 'basic',
+                        iconUrl: 'icons/icon128.png',
+                        title: 'Text-to-Speech with Azure',
+                        message: 'Please select some text to speak.'
+                    });
+                    return;
+                }
+                
+                // Inject the TTS script and speak the selected text
+                chrome.scripting.executeScript({
+                    target: { tabId: activeTab.id },
+                    files: ['azureTTS.js']
+                }).then(() => {
+                    chrome.scripting.executeScript({
+                        target: { tabId: activeTab.id },
+                        function: speakSelectedText,
+                        args: [selectedText]
+                    });
+                }).catch(err => {
+                    console.error("Error injecting script:", err);
+                });
+            }).catch(err => {
+                console.error("Error getting selected text:", err);
+            });
+        });
+    }
+});
+
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "speakText") {
         chrome.scripting.executeScript({
